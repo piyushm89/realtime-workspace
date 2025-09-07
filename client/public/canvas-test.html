@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Canvas Test</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+        }
+        
+        #testCanvas {
+            border: 2px solid #333;
+            cursor: crosshair;
+            background-color: white;
+        }
+        
+        .controls {
+            margin-bottom: 20px;
+        }
+        
+        .color-btn {
+            width: 30px;
+            height: 30px;
+            border: 2px solid #ccc;
+            margin: 2px;
+            cursor: pointer;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Canvas Drawing Test</h1>
+    
+    <div class="controls">
+        <label>Brush Size: </label>
+        <input type="range" id="brushSize" min="1" max="20" value="5">
+        <span id="sizeDisplay">5</span>px
+        
+        <br><br>
+        
+        <label>Colors: </label>
+        <div class="color-btn" style="background-color: black" data-color="#000000"></div>
+        <div class="color-btn" style="background-color: red" data-color="#FF0000"></div>
+        <div class="color-btn" style="background-color: blue" data-color="#0000FF"></div>
+        <div class="color-btn" style="background-color: green" data-color="#00FF00"></div>
+        
+        <br><br>
+        
+        <button onclick="clearCanvas()">Clear Canvas</button>
+    </div>
+    
+    <canvas id="testCanvas" width="800" height="600"></canvas>
+    
+    <script>
+        const canvas = document.getElementById('testCanvas');
+        const ctx = canvas.getContext('2d');
+        let isDrawing = false;
+        let currentColor = '#000000';
+        let currentBrushSize = 5;
+        
+        // Set up canvas
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        
+        // Brush size control
+        const brushSizeSlider = document.getElementById('brushSize');
+        const sizeDisplay = document.getElementById('sizeDisplay');
+        
+        brushSizeSlider.addEventListener('input', (e) => {
+            currentBrushSize = e.target.value;
+            sizeDisplay.textContent = currentBrushSize;
+        });
+        
+        // Color controls
+        document.querySelectorAll('.color-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                currentColor = e.target.getAttribute('data-color');
+                console.log('Color changed to:', currentColor);
+            });
+        });
+        
+        // Drawing functions
+        function startDrawing(e) {
+            console.log('Start drawing at:', e.offsetX, e.offsetY);
+            isDrawing = true;
+            
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX, e.offsetY);
+            ctx.strokeStyle = currentColor;
+            ctx.lineWidth = currentBrushSize;
+            
+            // Draw a dot for single clicks
+            ctx.lineTo(e.offsetX + 0.1, e.offsetY + 0.1);
+            ctx.stroke();
+        }
+        
+        function draw(e) {
+            if (!isDrawing) return;
+            
+            console.log('Drawing to:', e.offsetX, e.offsetY);
+            ctx.lineTo(e.offsetX, e.offsetY);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX, e.offsetY);
+        }
+        
+        function stopDrawing() {
+            console.log('Stop drawing');
+            isDrawing = false;
+            ctx.beginPath();
+        }
+        
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            console.log('Canvas cleared');
+        }
+        
+        // Event listeners
+        canvas.addEventListener('mousedown', startDrawing);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', stopDrawing);
+        canvas.addEventListener('mouseout', stopDrawing);
+        
+        // Touch events for mobile
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const mouseEvent = new MouseEvent('mousedown', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        });
+        
+        canvas.addEventListener('touchmove', (e) => {
+            e.preventDefault();
+            const touch = e.touches[0];
+            const rect = canvas.getBoundingClientRect();
+            const mouseEvent = new MouseEvent('mousemove', {
+                clientX: touch.clientX,
+                clientY: touch.clientY
+            });
+            canvas.dispatchEvent(mouseEvent);
+        });
+        
+        canvas.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            const mouseEvent = new MouseEvent('mouseup', {});
+            canvas.dispatchEvent(mouseEvent);
+        });
+        
+        console.log('Canvas test page loaded successfully!');
+    </script>
+</body>
+</html>
